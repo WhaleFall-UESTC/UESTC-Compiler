@@ -1,22 +1,28 @@
 {
   "grammar": {
-    "Program": ["SubProgram"],
-    "SubProgram": ["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"],
-    "DeclarationStmtList": [
-      ["DeclarationStmt"],
-      ["DeclarationStmtList", ";", "DeclarationStmt"]
+    "Program": [["SubProgram"]],
+    "SubProgram": [["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"]],
+
+    "DeclarationStmtList": [["DeclarationStmt", "DeclarationStmtListPrime"]],
+    "DeclarationStmtListPrime": [
+      [";", "DeclarationStmt", "DeclarationStmtListPrime"],
+      ["ε"]
     ],
+
     "DeclarationStmt": [
       ["VariableDecl"],
       ["FunctionDecl"]
     ],
-    "VariableDecl": ["integer", "Variable"],
-    "Variable": ["Identifier"],
-    "Identifier": [
-      ["Letter"],
-      ["Identifier", "Letter"],
-      ["Identifier", "Digit"]
+    "VariableDecl": [["integer", "Variable"]],
+    "Variable": [["Identifier"]],
+
+    "Identifier": [["Letter", "IdentifierTail"]],
+    "IdentifierTail": [
+      ["Letter", "IdentifierTail"],
+      ["Digit", "IdentifierTail"],
+      ["ε"]
     ],
+
     "Letter": [
       ["a"], ["b"], ["c"], ["d"], ["e"], ["f"], ["g"], ["h"], ["i"], ["j"],
       ["k"], ["l"], ["m"], ["n"], ["o"], ["p"], ["q"], ["r"], ["s"], ["t"],
@@ -25,41 +31,52 @@
     "Digit": [
       ["0"], ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"]
     ],
-    "FunctionDecl": ["integer", "function", "Identifier", "(", "Parameter", ")", ";", "FunctionBody"],
-    "Parameter": ["Variable"],
-    "FunctionBody": ["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"],
-    "ExecStmtList": [
-      ["ExecStmt"],
-      ["ExecStmtList", ";", "ExecStmt"]
+
+    "FunctionDecl": [["integer", "function", "Identifier", "(", "Parameter", ")", ";", "FunctionBody"]],
+    "Parameter": [["Variable"]],
+    "FunctionBody": [["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"]],
+
+    "ExecStmtList": [["ExecStmt", "ExecStmtListPrime"]],
+    "ExecStmtListPrime": [
+      [";", "ExecStmt", "ExecStmtListPrime"],
+      ["ε"]
     ],
+
     "ExecStmt": [
       ["ReadStmt"],
       ["WriteStmt"],
       ["AssignStmt"],
       ["IfStmt"]
     ],
-    "ReadStmt": ["read", "(", "Variable", ")"],
-    "WriteStmt": ["write", "(", "Variable", ")"],
-    "AssignStmt": ["Variable", ":=", "ArithExpr"],
-    "ArithExpr": [
-      ["ArithExpr", "-", "Term"],
-      ["Term"]
+    "ReadStmt": [["read", "(", "Variable", ")"]],
+    "WriteStmt": [["write", "(", "Variable", ")"]],
+    "AssignStmt": [["Variable", ":=", "ArithExpr"]],
+
+    "ArithExpr": [["Term", "ArithExprPrime"]],
+    "ArithExprPrime": [
+      ["-", "Term", "ArithExprPrime"],
+      ["ε"]
     ],
-    "Term": [
-      ["Term", "*", "Factor"],
-      ["Factor"]
+
+    "Term": [["Factor", "TermPrime"]],
+    "TermPrime": [
+      ["*", "Factor", "TermPrime"],
+      ["ε"]
     ],
+
     "Factor": [
       ["Variable"],
       ["Constant"],
       ["FuncCall"]
     ],
-    "Constant": ["UnsignedInt"],
-    "UnsignedInt": [
-      ["Digit"],
-      ["UnsignedInt", "Digit"]
+    "Constant": [["UnsignedInt"]],
+    "UnsignedInt": [["Digit", "UnsignedIntTail"]],
+    "UnsignedIntTail": [
+      ["Digit", "UnsignedIntTail"],
+      ["ε"]
     ],
-    "IfStmt": ["if", "CondExpr", "then", "ExecStmt", "else", "ExecStmt"]
+
+    "IfStmt": [["if", "CondExpr", "then", "ExecStmt", "else", "ExecStmt"]]
   },
   "startSymbol": "Program",
   "terminals": [
@@ -69,10 +86,14 @@
     ";", "(", ")", ":=", "-", "*", "="
   ],
   "nonTerminals": [
-    "Program", "SubProgram", "DeclarationStmtList", "DeclarationStmt",
-    "VariableDecl", "Variable", "Identifier", "Letter", "Digit",
-    "FunctionDecl", "Parameter", "FunctionBody", "ExecStmtList", "ExecStmt",
-    "ReadStmt", "WriteStmt", "AssignStmt", "ArithExpr", "Term", "Factor",
-    "Constant", "UnsignedInt", "IfStmt", "CondExpr", "FuncCall"
+    "Program", "SubProgram",
+    "DeclarationStmtList", "DeclarationStmtListPrime", "DeclarationStmt",
+    "VariableDecl", "Variable", "Identifier", "IdentifierTail", "Letter", "Digit",
+    "FunctionDecl", "Parameter", "FunctionBody",
+    "ExecStmtList", "ExecStmtListPrime", "ExecStmt",
+    "ReadStmt", "WriteStmt", "AssignStmt",
+    "ArithExpr", "ArithExprPrime", "Term", "TermPrime",
+    "Factor", "Constant", "UnsignedInt", "UnsignedIntTail",
+    "IfStmt", "CondExpr", "FuncCall"
   ]
 }
