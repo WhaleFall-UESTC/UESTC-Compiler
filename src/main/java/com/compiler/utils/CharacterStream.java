@@ -55,6 +55,40 @@ public class CharacterStream {
     }
 
     /**
+     * get the i-th character from current position (0-based)
+     * @param i distance from current position
+     * @return the i-th character, null if it doesn't exist
+     */
+    public static @Nullable Character peek(int i) {
+        if (!checkNextCharacter()) {
+            return null;
+        }
+        if (i < 0) {
+            return null;
+        }
+        if (i == 0) {
+            // next produce can not handle i = 0
+            return peek();
+        }
+        try {
+            // Mark current position, allowing enough lookahead
+            reader.mark(i + 1);
+            // position 0 has already read
+            for (int j = 0; j < i - 1; j++) {
+                reader.read();
+            }
+            // Read the target character
+            int targetChar = reader.read();
+            // Reset to original position
+            reader.reset();
+            return (targetChar != -1) ? (char) targetChar : null;
+        } catch (IOException e) {
+            MiniLogger.warn("Error peeking character at position {}: {}", i, e);
+            return null;
+        }
+    }
+
+    /**
      * close the stream
      */
     public static void close() {
@@ -88,16 +122,13 @@ public class CharacterStream {
      */
     private static boolean checkNextCharacter() {
         if (!init) {
-            MiniLogger.warn("Character stream has not been initialized");
-            System.out.println("Should initialize character stream first");
+            MiniLogger.error("Character stream has not been initialized");
             return false;
         }
-
         if (!hasNext) {
             MiniLogger.warn("Stream has no next character");
             return false;
         }
-
         return true;
     }
 }

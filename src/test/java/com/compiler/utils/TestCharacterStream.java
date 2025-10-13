@@ -24,6 +24,13 @@ public class TestCharacterStream {
 
         CharacterStream.initialize(filePath);
 
+        Assertions.assertEquals('[', CharacterStream.peek(0));
+        Assertions.assertEquals('I', CharacterStream.peek(1));
+        Assertions.assertEquals('N', CharacterStream.peek(2));
+        Assertions.assertEquals('[', CharacterStream.peek());
+        Assertions.assertEquals('F', CharacterStream.peek(3));
+        Assertions.assertEquals('O', CharacterStream.peek(4));
+        Assertions.assertEquals(']', CharacterStream.peek(5));
         Assertions.assertEquals('[', CharacterStream.peek());
 
         var sb = new StringBuilder();
