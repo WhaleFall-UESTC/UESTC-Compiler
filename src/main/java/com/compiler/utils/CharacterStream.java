@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.function.Predicate;
 
 public class CharacterStream {
     private static BufferedReader reader;
@@ -26,7 +27,7 @@ public class CharacterStream {
             init = true;
             MiniLogger.info("CharacterStream initialized");
         } catch (IOException e) {
-            MiniLogger.logErrorAndExit("Failed to initialize character stream for {}. Error: {}", filePath, e);
+            MiniLogger.logErrorAndExit("Failed to initialize character stream for {}. Error: {}", filePath, e.getMessage());
         }
     }
 
@@ -43,6 +44,14 @@ public class CharacterStream {
         return result;
     }
 
+    public static String consumeWhile(Predicate<Character> condition) {
+        StringBuilder sb = new StringBuilder();
+        while (checkNextCharacter() && condition.test(peek())) {
+            sb.append(consume());
+        }
+        return sb.toString();
+    }
+
     /**
      * get the next character of stream
      * @return next character of stream, null if it does not have
@@ -55,8 +64,16 @@ public class CharacterStream {
     }
 
     /**
+     * get next character of the stream
+     * @return next
+     */
+    public static char getNext() {
+        return (char) next;
+    }
+
+    /**
      * get the i-th character from current position (0-based)
-     * @param i distance from current position
+     * @param i distance from current position, i >= 0
      * @return the i-th character, null if it doesn't exist
      */
     public static @Nullable Character peek(int i) {
@@ -108,6 +125,10 @@ public class CharacterStream {
     }
 
     private static void readNextCharacter() {
+        if (init && !hasNext) {
+            next = 0;
+            return;
+        }
         try {
             next = reader.read();
             hasNext = (next != -1);

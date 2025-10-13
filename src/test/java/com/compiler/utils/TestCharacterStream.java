@@ -47,4 +47,23 @@ public class TestCharacterStream {
             System.out.println("Error deleting file");
         }
     }
+
+    @Test
+    public void testConsumeWhile() {
+        String message = "Hello World! Compiler!";
+        String filePath = "testConsumeWhile.txt";
+        MiniWriter writer = new MiniWriter(filePath);
+        writer.write(message);
+
+        CharacterStream.initialize(filePath);
+
+        String read =  CharacterStream.consumeWhile(c -> !Character.isWhitespace(c));
+        Assertions.assertEquals("Hello", read);
+
+        try {
+            Files.delete(Paths.get(filePath));
+        } catch (IOException e) {
+            System.out.println("Error deleting file");
+        }
+    }
 }
