@@ -1,0 +1,78 @@
+{
+  "grammar": {
+    "Program": ["SubProgram"],
+    "SubProgram": ["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"],
+    "DeclarationStmtList": [
+      ["DeclarationStmt"],
+      ["DeclarationStmtList", ";", "DeclarationStmt"]
+    ],
+    "DeclarationStmt": [
+      ["VariableDecl"],
+      ["FunctionDecl"]
+    ],
+    "VariableDecl": ["integer", "Variable"],
+    "Variable": ["Identifier"],
+    "Identifier": [
+      ["Letter"],
+      ["Identifier", "Letter"],
+      ["Identifier", "Digit"]
+    ],
+    "Letter": [
+      ["a"], ["b"], ["c"], ["d"], ["e"], ["f"], ["g"], ["h"], ["i"], ["j"],
+      ["k"], ["l"], ["m"], ["n"], ["o"], ["p"], ["q"], ["r"], ["s"], ["t"],
+      ["u"], ["v"], ["w"], ["x"], ["y"], ["z"]
+    ],
+    "Digit": [
+      ["0"], ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"]
+    ],
+    "FunctionDecl": ["integer", "function", "Identifier", "(", "Parameter", ")", ";", "FunctionBody"],
+    "Parameter": ["Variable"],
+    "FunctionBody": ["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"],
+    "ExecStmtList": [
+      ["ExecStmt"],
+      ["ExecStmtList", ";", "ExecStmt"]
+    ],
+    "ExecStmt": [
+      ["ReadStmt"],
+      ["WriteStmt"],
+      ["AssignStmt"],
+      ["IfStmt"]
+    ],
+    "ReadStmt": ["read", "(", "Variable", ")"],
+    "WriteStmt": ["write", "(", "Variable", ")"],
+    "AssignStmt": ["Variable", ":=", "ArithExpr"],
+    "ArithExpr": [
+      ["ArithExpr", "-", "Term"],
+      ["Term"]
+    ],
+    "Term": [
+      ["Term", "*", "Factor"],
+      ["Factor"]
+    ],
+    "Factor": [
+      ["Variable"],
+      ["Constant"],
+      ["FuncCall"]
+    ],
+    "Constant": ["UnsignedInt"],
+    "UnsignedInt": [
+      ["Digit"],
+      ["UnsignedInt", "Digit"]
+    ],
+    "IfStmt": ["if", "CondExpr", "then", "ExecStmt", "else", "ExecStmt"]
+  },
+  "startSymbol": "Program",
+  "terminals": [
+    "begin", "end", "integer", "function", "read", "write", "if", "then", "else",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+    ";", "(", ")", ":=", "-", "*", "="
+  ],
+  "nonTerminals": [
+    "Program", "SubProgram", "DeclarationStmtList", "DeclarationStmt",
+    "VariableDecl", "Variable", "Identifier", "Letter", "Digit",
+    "FunctionDecl", "Parameter", "FunctionBody", "ExecStmtList", "ExecStmt",
+    "ReadStmt", "WriteStmt", "AssignStmt", "ArithExpr", "Term", "Factor",
+    "Constant", "UnsignedInt", "IfStmt", "CondExpr", "FuncCall"
+  ]
+}
