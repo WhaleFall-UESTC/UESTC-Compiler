@@ -17,12 +17,14 @@ public class Parser {
     private static boolean declaringVar = false;
     private static boolean usingVar = false;
     private static boolean usingFunc = false;
-    private static boolean usingConst = false;
+    private static boolean parsingFactor = false;
     private static boolean parsingFunc = false;
     private static boolean parsingParam = false;
     private static boolean parsingVar = false;
 
-    private static Deque<Integer> procedureStack = new ArrayDeque<Integer>();
+    private static Deque<ProcState> procedureStack = new ArrayDeque<>();
+
+    private static Token usingFuncToken;
 
     // for debug
     private static int markLevel = 0;
@@ -34,7 +36,26 @@ public class Parser {
     static {
         int globalIdx = procedureTable.add(initProcredure, "integer", 0);
         procedureTable.procedureAddAdr(globalIdx, -1, -1);
-        procedureStack.push(globalIdx);
+        procedureStack.push(new ProcState(globalIdx));
+    }
+
+    static class ProcState {
+        int tableIdx;
+        int state = DECL;
+        public static final int DECL = 0;
+        public static final int EXEC = 1;
+        ProcState(int tableIdx) {
+            this.tableIdx = tableIdx;
+        }
+        public void setStateExec() {
+            state = EXEC;
+        }
+        public int getTableIdx() {
+            return tableIdx;
+        }
+        public int getState() {
+            return state;
+        }
     }
 
     static class Report {
@@ -72,13 +93,33 @@ public class Parser {
     }
 
     private static int getCurrentProcedureIndex() {
-        Integer currentProcedureIdx = procedureStack.peek();
-        if (currentProcedureIdx == null || !procedureTable.isLegalIndex(currentProcedureIdx)) {
-            String message = "Current Procedure Index " + currentProcedureIdx + " is NULL or out of bounds.";
+        ProcState currentProcedure = procedureStack.peek();
+        if (currentProcedure == null || !procedureTable.isLegalIndex(currentProcedure.getTableIdx())) {
+            String message = "Current Procedure Index is NULL or out of bounds.";
             MiniLogger.error(message);
             throw new RuntimeException(message);
         }
-        return currentProcedureIdx;
+        return currentProcedure.getTableIdx();
+    }
+
+    private static int getCurrentProcState() {
+        ProcState currentProcedure = procedureStack.peek();
+        if (currentProcedure == null) {
+            String message = "Current Procedure is NULL";
+            MiniLogger.error(message);
+            throw new RuntimeException(message);
+        }
+        return currentProcedure.getState();
+    }
+
+    private static void changeCurrentProcStateExec() {
+        ProcState currentProcedure = procedureStack.peek();
+        if (currentProcedure == null) {
+            String message = "Current Procedure is NULL";
+            MiniLogger.error(message);
+            throw new RuntimeException(message);
+        }
+        currentProcedure.setStateExec();
     }
 
     public static void parse() {
@@ -95,9 +136,8 @@ public class Parser {
         if (Grammar.isTerminal(symbol)) {
             Token currentToken = peekTokenWithFilter();
             MiniLogger.info("Current Token: " + currentToken);
-            // consume Token even if it does NOT match
-            TokenStream.consume();
             if (currentToken != null && currentToken.match(symbol)) {
+                TokenStream.consume();
                 Report report = matchedTokenHandler(currentToken);
                 if (report.hasError()) {
                     errorTable.add(report.getLine(), report.getMessage());
@@ -106,6 +146,20 @@ public class Parser {
                 // even if there is something wrong
                 return true;
             } else {
+                // ; not match means MISSING ';'
+                if (";".equals(symbol)) {
+                    TokenStream.mark();
+                    Token nextToken = peekTokenWithFilter();
+                    TokenStream.reset();
+                    MiniLogger.warn("MISSING ';' before '" + nextToken.getText() + "'");
+                    errorTable.add(currentToken.getLine(), "MISSING ';' before '" + nextToken.getText() + "'");
+                    // pretend it match
+                    return true;
+                }
+
+                // consume Token even if it does NOT match
+                // but if MISSING, do not consume it
+                TokenStream.consume();
                 // failed to match
                 return false;
             }
@@ -173,6 +227,25 @@ public class Parser {
                 parsingVar = false;
                 return addNewVariable(currentToken, VariableTable.VariableType.VARIABLE);
             }
+
+            if (usingVar && getCurrentProcState() == ProcState.EXEC) {
+                usingVar = false;
+                return detectVariable(currentToken);
+            }
+            if (usingFunc) {
+                usingFuncToken = currentToken;
+            }
+        }
+
+        // handle ) in FuncCall
+        if (currentToken.isTypeLeftBracket()) {
+            if (usingFunc) {
+                parsingFactor = false;
+                usingFunc = false;
+                var res = detectFunction(usingFuncToken);
+                usingFuncToken = null;
+                return res;
+            }
         }
 
         // handle begin
@@ -189,7 +262,7 @@ public class Parser {
             procedureStack.pop();
         }
 
-//        no need to handle, match successfully
+        // no need to handle, match successfully
         return Report.success();
     }
 
@@ -208,7 +281,7 @@ public class Parser {
             return Report.error(errorMsg, currentToken.getLine());
         }
         int newProcIdx = procedureTable.add(newProcName, "integer", currentLevel);
-        procedureStack.push(newProcIdx);
+        procedureStack.push(new ProcState(newProcIdx));
         return Report.success();
     }
 
@@ -236,6 +309,26 @@ public class Parser {
         procedureTable.procedureAddAdr(currentProcIdx, varIdx, varIdx);
     }
 
+    private static Report detectVariable(Token currentToken) {
+        if (variableTable.contains(currentToken.getText(), getCurrentLevel())) {
+            return Report.success();
+        } else {
+            String errorMsg = "'" + currentToken.getText() + "' is not a valid variable";
+            MiniLogger.error(errorMsg);
+            return Report.error(errorMsg, currentToken.getLine());
+        }
+    }
+
+    private static Report detectFunction(Token currentToken) {
+        if (procedureTable.contains(currentToken.getText(), getCurrentLevel())) {
+            return Report.success();
+        } else {
+            String errorMsg = "'" + currentToken.getText() + "' is not a valid procedure";
+            MiniLogger.error(errorMsg);
+            return Report.error(errorMsg, currentToken.getLine());
+        }
+    }
+
     private static void changeStatus(String sym) {
         if (declaringFunc) {
             if ("function".equals(sym)) {
@@ -257,6 +350,24 @@ public class Parser {
         if ("VariableDecl".equals(sym)) {
             declaringVar = true;
         }
+
+        if (parsingFactor) {
+            if ("FuncCall".equals(sym)) {
+                usingFunc = true;
+            }
+        }
+        if ("Factor".equals(sym)) {
+            parsingFactor = true;
+        }
+
+        if (getCurrentProcState() == ProcState.EXEC) {
+            if ("Variable".equals(sym)) {
+                usingVar = true;
+            }
+        }
+        if ("ExecStmtList".equals(sym)) {
+            changeCurrentProcStateExec();
+        }
     }
 
     private static void resetStatus() {
@@ -275,6 +386,12 @@ public class Parser {
         if (parsingVar) {
             parsingVar = false;
         }
+        if (usingFunc) {
+            usingFunc = false;
+        }
+        if (usingVar) {
+            usingVar = false;
+        }
     }
 
     /**
@@ -290,15 +407,17 @@ public class Parser {
     }
 
     private static boolean isInvalidToken(Token token) {
+        if (token.match("EOF")) {
+            procedureTable.print();
+            variableTable.print();
+            errorTable.print();
+            // out of token, but the Parser is still reqirues
+            MiniLogger.logErrorAndExit("Out of Tokens");
+        }
         for (String type : tokenTypeBlackList) {
             if (token.match(type)) {
                 return true;
             }
-        }
-        if (token.match("EOF")) {
-            // out of token, but the Parser is still reqirues
-            MiniLogger.error("Out of Tokens");
-            throw new RuntimeException("Out of Tokens");
         }
         return false;
     }

@@ -123,6 +123,14 @@ public class Token {
         return "end".equals(type);
     }
 
+    public boolean isTypeLeftBracket() {
+        return "(".equals(type);
+    }
+
+    public boolean isTypeConstant() {
+        return "constant".equals(type);
+    }
+
     /*
       initialization when the class is loaded
       read json file

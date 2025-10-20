@@ -16,4 +16,11 @@ public class TestMain {
         args[0] = "src/main/resources/test2.mini";
         com.compiler.Main.main(args);
     }
+
+    @Test
+    public void testMainUndefined() {
+        String[] args = new String[1];
+        args[0] = "src/main/resources/testUndefined.mini";
+        com.compiler.Main.main(args);
+    }
 }

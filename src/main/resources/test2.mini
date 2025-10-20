@@ -1,9 +1,8 @@
 begin
-   integer x;
-     integer y;
-     read(x);
-     if x > 0 then
-       y := x * 2;
-     else
-       write(y);
-end
+  integer x;
+  integer y
+  read(x);
+  if x > 0 then
+    y := x * 2;
+  else
+edn

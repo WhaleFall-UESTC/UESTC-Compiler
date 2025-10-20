@@ -20,7 +20,7 @@
 
     "FunctionDecl": [["integer", "function", "Identifier", "(", "Parameter", ")", ";", "FunctionBody"]],
     "Parameter": [["Variable"]],
-    "FunctionBody": [["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"]],
+    "FunctionBody": [["begin", "DeclarationStmtList", ";", "ExecStmtList", ";", "end"]],
 
     "ExecStmtList": [["ExecStmt", "ExecStmtListPrime"]],
     "ExecStmtListPrime": [
@@ -60,7 +60,7 @@
     "Constant": [["UnsignedInt"]],
     "UnsignedInt": [["constant"]],
 
-    "IfStmt": [["if", "CondExpr", "then", "ExecStmt", ";", "else", "ExecStmt", ";"]],
+    "IfStmt": [["if", "CondExpr", "then", "ExecStmt", ";", "else", "ExecStmt"]],
     "CondExpr": [["ArithExpr", "RelOp", "ArithExpr"]],
     "RelOp": [
       ["<"],
@@ -78,7 +78,8 @@
     "identifier",
     "constant",
     ";", "(", ")", ":=", "+", "-", "*", "/", "=",
-    "<", "<=", ">", ">=", "<>"
+    "<", "<=", ">", ">=", "<>",
+    "EOF"
   ],
   "nonTerminals": [
     "Program", "SubProgram",

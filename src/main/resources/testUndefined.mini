@@ -1,0 +1,11 @@
+begin
+    integer x;
+    integer function WRITE(n);
+        begin
+            integer m;
+            write(n);
+        end;
+    z := x + 1;
+    write(y);
+    x := READ(x) + z;
+end
