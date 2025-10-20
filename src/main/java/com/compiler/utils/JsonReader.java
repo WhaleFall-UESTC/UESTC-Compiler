@@ -46,6 +46,10 @@ public class JsonReader {
         return mapper.convertValue(readMapObject(jsonPath, node), new TypeReference<Map<String, Integer>>() {});
     }
 
+    public static Map<String, List<List<String>>> readMapListListString(String jsonPath, String node) {
+        return mapper.convertValue(readMapObject(jsonPath, node), new TypeReference<Map<String, List<List<String>>>>() {});
+    }
+
     /**
      * Reads a list of strings from a JSON file in the classpath.
      * @param jsonPath the path to the JSON file in the classpath (e.g., "config/tokens.json")
@@ -93,6 +97,46 @@ public class JsonReader {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             MiniLogger.error("Error converting string list to char list for node: " + node, e);
+            return null;
+        }
+    }
+
+    /**
+     * Reads a single value (as Object) from a JSON file in the classpath.
+     *
+     * @param jsonPath the path to the JSON file in the classpath (e.g., "config/app.json")
+     * @param node     the name of the top-level JSON field to extract
+     * @return the value of the specified field as an {@code Object}, or {@code null}
+     *         if the file is not found, the node does not exist, or an I/O/parsing error occurs
+     */
+    public static Object readValue(String jsonPath, String node) {
+        try (InputStream inputStream = JsonReader.class.getClassLoader().getResourceAsStream(jsonPath)) {
+            if (inputStream == null) {
+                MiniLogger.error("File not found: " + jsonPath);
+                return null;
+            }
+            Map<String, Object> root = mapper.readValue(inputStream, new TypeReference<Map<String, Object>>() {});
+            Object value = root.get(node);
+            if (value == null) {
+                MiniLogger.error("Key not found: " + node + " in " + jsonPath);
+                return null;
+            }
+            return value;
+        } catch (IOException e) {
+            MiniLogger.error("Error while trying to read json file: " + jsonPath, e);
+            return null;
+        }
+    }
+
+    public static String readStringValue(String jsonPath, String node) {
+        Object value = readValue(jsonPath, node);
+        if (value == null) {
+            return null; // error already logged by readValue
+        }
+        if (value instanceof String) {
+            return (String) value;
+        } else {
+            MiniLogger.error("Value for key '" + node + "' is not a string. Actual type: " + value.getClass().getSimpleName());
             return null;
         }
     }

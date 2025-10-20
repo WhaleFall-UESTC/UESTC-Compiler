@@ -1,7 +1,7 @@
 package com.compiler;
 
 import com.compiler.lexer.Lexer;
-import com.compiler.token.Token;
+import com.compiler.parser.Parser;
 import com.compiler.token.TokenStream;
 import com.compiler.utils.CharacterStream;
 import com.compiler.utils.PathConfig;
@@ -16,14 +16,16 @@ public class Main {
         String filePath = parseArgs(args);
         initialize(filePath);
         Lexer.start();
+        Parser.parse();
         fin();
     }
 
     private static void initialize(String codePath) {
         CharacterStream.initialize(codePath);
         TokenStream.initialize();
-        String fileName = parseFilename(codePath);
-        TokenStream.setOutputFile(fileName + PathConfig.TOKENS_DYD);
+        String filename = parseFilename(codePath);
+        TokenStream.setOutputFile(filename + PathConfig.OUTPUT_DYD);
+        PathConfig.setFilename(filename);
         Lexer.initialize(codePath);
     }
 

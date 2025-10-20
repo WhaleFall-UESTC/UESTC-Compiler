@@ -7,6 +7,7 @@ import com.compiler.utils.MiniLogger;
 
 public class Lexer {
     private static String codePath;
+    private static int line = 1;
 
     /**
      * initialize Lexer
@@ -48,23 +49,24 @@ public class Lexer {
         if (Character.isLetter(CharacterStream.getNext())) {
             String lexeme = CharacterStream.consumeWhile(c -> Character.isLetterOrDigit(c));
             if (Token.isKeyWord(lexeme)) {
-                return new Token(lexeme, lexeme);
+                return new Token(lexeme, lexeme, line);
             } else {
-                return new Token(lexeme, "identifier");
+                return new Token(lexeme, "identifier",  line);
             }
         }
 
         // match constant
+        // not support 0x, 0, 0b, L, l, D, d, float...
         if (Character.isDigit(CharacterStream.getNext())) {
             String lexeme = CharacterStream.consumeWhile(c -> Character.isDigit(c));
-            return new Token(lexeme, "constant");
+            return new Token(lexeme, "constant", line);
         }
 
         // match math operator
         if (Token.isMathOp(CharacterStream.getNext())) {
             String lexeme = CharacterStream.consumeWhile(Token::isMathOp);
             if (Token.isKeyWord(lexeme)) {
-                return new Token(lexeme, lexeme);
+                return new Token(lexeme, lexeme, line);
             } else {
                 raiseInvalidToken();
             }
@@ -73,7 +75,7 @@ public class Lexer {
         // match end of a sentence
         if (';' == CharacterStream.getNext()) {
             CharacterStream.consume();
-            return new Token(";", ";");
+            return new Token(";", ";", line);
         }
 
         // match EOLN/EOF
@@ -82,9 +84,9 @@ public class Lexer {
                 CharacterStream.consume();
             }
             if (CharacterStream.isHasNext()) {
-                return new Token("\n", "EOLN");
+                return new Token("\n", "EOLN", line++);
             } else {
-                return new Token("\n", "EOF");
+                return new Token("\n", "EOF", line++);
             }
         }
         return null;

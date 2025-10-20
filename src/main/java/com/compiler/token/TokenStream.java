@@ -2,14 +2,21 @@ package com.compiler.token;
 
 import com.compiler.utils.MiniLogger;
 import com.compiler.utils.MiniWriter;
-import com.compiler.utils.PathConfig;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class TokenStream {
     private static volatile TokenStream instance;
     private final ConcurrentLinkedDeque<Token> tokensQueue;
     private final int maxCapacity;
+
+    private Deque<List<Token>> savedState = new ArrayDeque<>();
+    private static boolean consumedAfterMark = false;
+    private static boolean marked = false;
 
     private static MiniWriter writer;
 
@@ -58,7 +65,21 @@ public class TokenStream {
         if (!hasInstance()) {
             return null;
         }
+        if (marked) {
+            consumedAfterMark = true;
+        }
         return instance.tokensQueue.poll();
+    }
+
+    /**
+     * Peek at the next token in the stream without removing it.
+     * @return the next token, or {@code null} if the stream is empty or not initialized
+     */
+    public static Token peek() {
+        if (!hasInstance()) {
+            return null;
+        }
+        return instance.tokensQueue.peek();
     }
 
     /**
@@ -81,6 +102,58 @@ public class TokenStream {
 
     public static void setOutputFile(String outputFile) {
         writer = new MiniWriter(outputFile);
+    }
+
+    /**
+     * Save the current state of the token stream as a stack
+     * a mark() must appear in pair with reset() or save()
+     */
+    public static void mark() {
+        if (!hasInstance()) {
+            MiniLogger.error("TokenStream not initialized, cannot mark");
+            return;
+        }
+
+        var newMark = new ArrayList<>(instance.tokensQueue);
+        instance.savedState.push(newMark);
+        marked = true;
+    }
+
+    /**
+     * Reset the token stream to the state saved by the last mark().
+     * If no mark was made, this is a no-op.
+     * must appear in pair after mark()
+     */
+    public static void reset() {
+        if (!hasInstance()) {
+            MiniLogger.error("TokenStream not initialized, cannot reset");
+            return;
+        }
+        if (instance.savedState == null || instance.tokensQueue.isEmpty()) {
+            // No mark was made, do nothing
+            return;
+        }
+        // Clear current queue and restore from saved state
+        var savedState = instance.savedState.pop();
+        instance.tokensQueue.clear();
+        instance.tokensQueue.addAll(savedState);
+    }
+
+    /**
+     * save the current change after mark
+     * drop the latest mark
+     * must appear in pair after mark()
+     */
+    public static void save() {
+        if (!hasInstance()) {
+            MiniLogger.error("TokenStream not initialized, cannot reset");
+            return;
+        }
+        if (instance.savedState == null || instance.tokensQueue.isEmpty()) {
+            // No mark was made, do nothing
+            return;
+        }
+        instance.savedState.pop();
     }
 
     private TokenStream() {

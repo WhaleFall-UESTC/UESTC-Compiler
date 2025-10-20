@@ -1,5 +1,6 @@
 package com.compiler.token;
 
+import com.compiler.parser.Grammar;
 import com.compiler.utils.JsonReader;
 import com.compiler.utils.PathConfig;
 
@@ -12,18 +13,20 @@ public class Token {
     private String text;
     private String type;
     private int typeId;
+    private int line;
 
     private static Map<String, Integer> tokenMap;
     private static List<Character> mathOps;
 
-    public Token(String text, String type, int typeId) {
+    public Token(String text, String type, int typeId, int line) {
         this.text = text;
         this.type = type;
         this.typeId = typeId;
+        this.line = line;
     }
 
-    public Token(String text, String type) {
-        this(text, type, Token.getTypeId(type));
+    public Token(String text, String type, int line) {
+        this(text, type, Token.getTypeId(type), line);
     }
 
     /**
@@ -54,12 +57,12 @@ public class Token {
     }
 
     /**
-     * if two token is the same type
-     * @param token token to be compared
-     * @return if token and this are the same type
+     * Checks if the current token's type matches the given terminal symbol.
+     * @param terminal the terminal symbol from the grammar (must be in grammar.json's "terminals" list)
+     * @return {@code true} if {@code this.type} equals {@code terminal}, {@code false} otherwise
      */
-    public boolean match(Token token) {
-        return this.typeId == token.typeId;
+    public boolean match(String terminal) {
+         return this.type != null && this.type.equals(terminal);
     }
 
     /**
@@ -72,7 +75,7 @@ public class Token {
 
     @Override
     public String toString() {
-        return text + " " + type + " " + typeId;
+        return text + " - type:" + type + " " + typeId + " - line:" + line;
     }
 
     @Override
@@ -80,7 +83,7 @@ public class Token {
         if (obj == null) return false;
         if (obj == this) return true;
         if (obj.getClass() != Token.class) return false;
-        return match((Token) obj);
+        return text.equals(((Token) obj).text);
     }
 
     public String getText() {
@@ -104,6 +107,20 @@ public class Token {
 
     public int getTypeId() {
         return typeId;
+    }
+
+    public int getLine() { return line; }
+
+    public boolean isTypeIdentifier() {
+        return "identifier".equals(type);
+    }
+
+    public boolean isTypeBegin() {
+        return "begin".equals(type);
+    }
+
+    public boolean isTypeEnd() {
+        return "end".equals(type);
     }
 
     /*

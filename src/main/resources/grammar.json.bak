@@ -1,7 +1,7 @@
 {
   "grammar": {
     "Program": [["SubProgram"]],
-    "SubProgram": [["begin", "DeclarationStmtList", ";", "ExecStmtList", ";", "end"]],
+    "SubProgram": [["begin", "DeclarationStmtList", ";", "ExecStmtList", "end"]],
 
     "DeclarationStmtList": [["DeclarationStmt", "DeclarationStmtListPrime"]],
     "DeclarationStmtListPrime": [
@@ -16,7 +16,21 @@
     "VariableDecl": [["integer", "Variable"]],
     "Variable": [["Identifier"]],
 
-    "Identifier": [["identifier"]],
+    "Identifier": [["Letter", "IdentifierTail"]],
+    "IdentifierTail": [
+      ["Letter", "IdentifierTail"],
+      ["Digit", "IdentifierTail"],
+      ["ε"]
+    ],
+
+    "Letter": [
+      ["a"], ["b"], ["c"], ["d"], ["e"], ["f"], ["g"], ["h"], ["i"], ["j"],
+      ["k"], ["l"], ["m"], ["n"], ["o"], ["p"], ["q"], ["r"], ["s"], ["t"],
+      ["u"], ["v"], ["w"], ["x"], ["y"], ["z"]
+    ],
+    "Digit": [
+      ["0"], ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"]
+    ],
 
     "FunctionDecl": [["integer", "function", "Identifier", "(", "Parameter", ")", ";", "FunctionBody"]],
     "Parameter": [["Variable"]],
@@ -40,27 +54,29 @@
 
     "ArithExpr": [["Term", "ArithExprPrime"]],
     "ArithExprPrime": [
-      ["+", "Term", "ArithExprPrime"],
       ["-", "Term", "ArithExprPrime"],
       ["ε"]
     ],
 
     "Term": [["Factor", "TermPrime"]],
     "TermPrime": [
-      ["/", "Factor", "TermPrime"],
       ["*", "Factor", "TermPrime"],
       ["ε"]
     ],
 
     "Factor": [
-      ["FuncCall"],
       ["Variable"],
-      ["Constant"]
+      ["Constant"],
+      ["FuncCall"]
     ],
     "Constant": [["UnsignedInt"]],
-    "UnsignedInt": [["constant"]],
+    "UnsignedInt": [["Digit", "UnsignedIntTail"]],
+    "UnsignedIntTail": [
+      ["Digit", "UnsignedIntTail"],
+      ["ε"]
+    ],
 
-    "IfStmt": [["if", "CondExpr", "then", "ExecStmt", ";", "else", "ExecStmt", ";"]],
+    "IfStmt": [["if", "CondExpr", "then", "ExecStmt", "else", "ExecStmt"]],
     "CondExpr": [["ArithExpr", "RelOp", "ArithExpr"]],
     "RelOp": [
       ["<"],
@@ -70,20 +86,20 @@
       ["="],
       ["<>"]
     ],
-    "FuncCall": [["Identifier", "(", "ArithExpr", ")"]]
+    "FuncCall": [["Identifier", "(", "Variable", ")"]]
   },
   "startSymbol": "Program",
   "terminals": [
     "begin", "end", "integer", "function", "read", "write", "if", "then", "else",
-    "identifier",
-    "constant",
-    ";", "(", ")", ":=", "+", "-", "*", "/", "=",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+    ";", "(", ")", ":=", "-", "*", "=",
     "<", "<=", ">", ">=", "<>"
   ],
   "nonTerminals": [
     "Program", "SubProgram",
     "DeclarationStmtList", "DeclarationStmtListPrime", "DeclarationStmt",
-    "VariableDecl", "Variable", "Identifier", "IdentifierTail",
+    "VariableDecl", "Variable", "Identifier", "IdentifierTail", "Letter", "Digit",
     "FunctionDecl", "Parameter", "FunctionBody",
     "ExecStmtList", "ExecStmtListPrime", "ExecStmt",
     "ReadStmt", "WriteStmt", "AssignStmt",
